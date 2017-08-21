@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style>
+			*{ margin: 0px; padding: 0px;}
+			li{ list-style: none;}
+			.banner{ width: 600px; height: 375px; margin: 0 auto; position: relative;}
+			.imglist li{ position: absolute; display: none;}
+			.imglist li:first-child{ display: block;}
+			.imglist img{ width: 100%;}
+			
+			.indexlist{ position: absolute; left: 50%;
+			transform: translate(-50%, 0); bottom: 20px;}
+			.indexlist li{ float: left; width: 8px; height: 8px; border-radius: 50%;
+			background: white; margin-right: 6px;}
+			.indexlist li.active{ background: orange;}
+			
+			.btn_prev, .btn_next{ position: absolute;
+			background: rgba(0,0,0,0.2); color: white; padding: 10px;
+			top: 50%; transform: translate(0, -50%); cursor: pointer;}
+			.btn_next{ right: 0px;}
+			.btn_prev:hover, .btn_next:hover{ background: rgba(0,0,0,0.4);}
+		</style>
+	</head>
+	<body>
+		<div class="banner">
+			<!-- 图片列表 -->
+			<ul class="imglist">
+				<li><img src="img/1.jpg"></li>
+				<li><img src="img/2.jpg"></li>
+				<li><img src="img/3.jpg"></li>
+				<li><img src="img/4.jpg"></li>
+			</ul>
+			<!-- 圆点列表 -->
+			<ul class="indexlist">
+				<li class="active"></li>
+				<li></li>
+				<li></li>
+				<li></li>
+			</ul>
+			<!-- 左右箭头 -->
+			<div class="btn_prev">&lt;</div>
+			<div class="btn_next">&gt;</div>
+		</div>
+	</body>
+	<script>
+		/**
+		 * 将整个轮播图的实现封装成一个对象
+		 * 实现思路：
+		 * 1、让图片自动切换
+		 * 2、鼠标悬停，停止自动轮播，鼠标移开时恢复自动轮播
+		 * 3、添加上一张和下一张的事件
+		 * 4、点击圆点，切换到对应的图片
+		 * 
+		 * 注意：对象方法里面的this，指向当前对象，
+		 * 但是如果对象方法里面再嵌套一个方法，则里面这个方法的this指向window
+		 */
+		var slider = {
+			banner : document.querySelector(".banner"),
+			//获取图片列表
+			imglist: document.querySelectorAll(".imglist li"),
+			//获取圆点列表
+			indexlist : document.querySelectorAll(".indexlist li"),
+			btnNext : document.querySelector(".btn_next"),
+			btnPrev : document.querySelector(".btn_prev"),
+			//定义一个下标
+			index : 0,
+			//定时器变量
+			t : null,
+			speed : 1000,
+			bindEvent : function(){
+				var _this = this;
+				//鼠标移上去，停止自动轮播
+				this.banner.addEventListener("mouseenter", function(){
+					clearInterval(_this.t);
+				})
+				
+				//鼠标移开，恢复自动轮播
+				this.banner.addEventListener("mouseleave", function(){
+					clearInterval(_this.t);
+					_this.t = setInterval(function(){
+						_this.toNext();
+						_this.change();
+					}, _this.speed)
+				})
+				
+				//下一张
+				this.btnNext.addEventListener("click", function(){
+					//控制下标 
+					_this.toNext();
+					//切换图片和圆点
+					_this.change();
+				})
+				
+				//上一张
+				this.btnPrev.addEventListener("click", function(){
+					//控制下标
+					_this.toPrev();
+					//切换图片
+					_this.change();
+				})
+				
+				//给每一个圆点添加事件
+				for(var i = 0; i < this.indexlist.length; i++){
+					this.indexlist[i].index = i;
+					this.indexlist[i].addEventListener("click", function(){
+						//获取当前点击的圆点下标
+						//这里不能直接获取i，因为点击事件，在点击的时候，循环已经完成，i已经变成最大值
+						//console.log(i);
+						//事件里面的this 指的是触发该事件的对象（当前点击的对象）
+						//console.log(this.index);
+						_this.index = this.index;
+						//切换图片
+						_this.change();
+					})
+				}
+			},
+			toNext : function(){
+				//控制下标（下一张）
+				this.index++;
+				if(this.index == this.imglist.length){
+					this.index = 0;
+				}
+			},
+			toPrev : function(){
+				//控制下标（上一张）
+				this.index--;
+				if(this.index < 0){
+					this.index = this.imglist.length - 1;
+				}
+			},
+			change : function(){
+				//切换图片
+				for(var i = 0; i < this.imglist.length; i++){
+					if(i == this.index){
+						this.imglist[i].style.display = "block";
+					}else{
+						this.imglist[i].style.display = "none";
+					}
+				}
+				//切换圆点
+				for(var i = 0; i < this.indexlist.length; i++){
+					if(i == this.index){
+						this.indexlist[i].className = "active";
+					}else{
+						this.indexlist[i].className = "";
+					}
+				}
+			},
+			init : function(){
+				//开启自动轮播
+				var _this = this;  //  this => slider
+				this.t = setInterval(function(){
+					_this.toNext();
+					_this.change();
+				}, _this.speed);
+				
+				//绑定事件
+				this.bindEvent();
+			}
+		}
+		
+		
+		slider.init();
+	</script>
+</html>
